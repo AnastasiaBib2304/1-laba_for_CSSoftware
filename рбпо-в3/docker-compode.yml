@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: insurance-postgres
+    environment:
+      POSTGRES_DB: insurance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/data.sql:/docker-entrypoint-db.d/init.sql
+    networks:
+      - insurance-network
+
+  app:
+    build: .
+    container_name: insurance-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/insurance_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - insurance-network
+
+volumes:
+  postgres_data:
+
+networks:
+  insurance-network:
+    driver: bridge
